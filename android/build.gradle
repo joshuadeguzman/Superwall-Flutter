@@ -1,6 +1,10 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+
 group 'com.superwall.superwallkit_flutter'
 version '1.0-SNAPSHOT'
-
 
 allprojects {
     repositories {
@@ -9,15 +13,23 @@ allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-
 android {
-    if (project.android.hasProperty("namespace")) {
-        namespace 'com.superwall.superwallkit_flutter'
-    }
+    compileSdkVersion 33
 
-    compileSdkVersion 34
+    defaultConfig {
+        minSdkVersion 26
+        
+        // Read from local.properties
+        def localPropertiesFile = rootProject.file('local.properties')
+        def localProperties = new Properties()
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.withInputStream { localProperties.load(it) }
+        }
+
+        // Set a default value if the property is not found
+        def waitForDebugger = localProperties.getProperty('WAIT_FOR_DEBUGGER', 'false')
+        buildConfigField "boolean", "WAIT_FOR_DEBUGGER", waitForDebugger
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -31,10 +43,6 @@ android {
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
         test.java.srcDirs += 'src/test/kotlin'
-    }
-
-    defaultConfig {
-        minSdkVersion 26
     }
 
     buildTypes {
@@ -55,21 +63,16 @@ android {
         }
     }
 
-    // Read from local.properties
-    def localPropertiesFile = rootProject.file('local.properties')
-    def localProperties = new Properties()
-    if (localPropertiesFile.exists()) {
-        localPropertiesFile.withInputStream { localProperties.load(it) }
+    buildFeatures {
+        buildConfig true
     }
 
-    // Set a default value if the property is not found
-    def waitForDebugger = localProperties.getProperty('WAIT_FOR_DEBUGGER', 'false')
-
-    defaultConfig {
-        buildConfigField "boolean", "WAIT_FOR_DEBUGGER", waitForDebugger
+    // Check if the namespace property is available
+    if (project.android.hasProperty("namespace")) {
+        namespace 'com.superwall.superwallkit_flutter'
     }
 }
-android.buildFeatures.buildConfig true
+
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation 'org.mockito:mockito-core:5.0.0'
